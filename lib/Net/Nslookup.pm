@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.2 2003/03/14 21:41:32 dlc Exp $
+# $Id: Nslookup.pm,v 1.3 2003/05/15 18:47:25 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -71,7 +71,7 @@ sub qslookup($) {
 # ----------------------------------------------------------------------
 sub nslookup {
     my $options = isa($_[0], 'HASH') ? shift : @_ % 2 ? { 'host', @_ } : { @_ };
-    my ($term, $type, @answers, $sub);
+    my ($term, $type, $server, @answers, $sub);
 
     # Some reasonable defaults.
     $term = lc ($options->{'term'} ||
@@ -79,12 +79,13 @@ sub nslookup {
                 $options->{'domain'} || return);
     $type = lc ($options->{'type'} ||
                 $options->{'qtype'} || "A");
+    $server = $options->{'server'} || '';
 
     eval {
         local $SIG{ALRM} = sub { die "alarm\n" };
         alarm $TIMEOUT unless $WIN32;
         $sub = $_lookups{$type};
-        defined $sub ? @answers = $sub->($term)
+        defined $sub ? @answers = $sub->($term, $server)
                      : die "Invalid type '$type'";
         alarm 0 unless $WIN32;
     };
@@ -100,16 +101,15 @@ sub nslookup {
 }
 
 sub _lookup_a {
-    my $term = shift;
-    my (@terms, $query);
+    my ($term, $server) = @_;
 
     debug("Performing 'A' lookup on `$term'");
     return qslookup($term);
 }
 
 sub _lookup_mx {
-    my $term = shift;
-    my $res = ns();
+    my ($term, $server) = @_;
+    my $res = ns($server);
     my (@mx, $rr, @answers);
 
     debug("Performing 'MX' lookup on `$term'");
@@ -122,8 +122,8 @@ sub _lookup_mx {
 }
 
 sub _lookup_ns {
-    my $term = shift;
-    my $res = ns();
+    my ($term, $server) = @_;
+    my $res = ns($server);
     my (@answers, $query, $rr);
 
     debug("Performing 'NS' lookup on `$term'");
@@ -137,15 +137,32 @@ sub _lookup_ns {
 }
 
 {
-    my $res;
+    my %res;
     sub ns {
-        unless (defined $res) {
+        my $server = shift || "";
+
+        unless (defined $res{$server}) {
             require Net::DNS;
             import Net::DNS;
-            $res = Net::DNS::Resolver->new;
+            $res{$server} = Net::DNS::Resolver->new;
+
+            # $server might be empty
+            if ($server) {
+                if (ref($server) eq 'ARRAY') {
+                    $res{$server}->nameservers(@$server);
+                }
+                else {
+                    $res{$server}->nameservers($server);
+                }
+            }
         }
 
-        return $res;
+        return $res{$server};
+    }
+
+    sub dump_res {
+        require Data::Dumper;
+        return Data::Dumper::Dumper(\%res);
     }
 }
 
@@ -185,7 +202,9 @@ C<nslookup> can be used to retrieve A, PTR, CNAME, MX, and NS records.
 
 B<nslookup> takes a hash of options, one of which should be I<term>,
 and performs a DNS lookup on that term.  The type of lookup is
-determined by the I<type> (or I<qtype>) argument.
+determined by the I<type> (or I<qtype>) argument.  If I<server> is
+specified (it should be an IP address, or a reference to an array
+of IP addresses), that server will be used for lookups.
 
 If only a single argument is passed in, the type defaults to I<A>,
 that is, a normal A record lookup.  This form is significantly faster
@@ -202,6 +221,13 @@ I<domain> and I<host> are synonyms for I<term>, and can be used to
 make client code more readable.  For example, use I<domain> when
 getting NS records, and use I<host> for A records; both do the same
 thing.
+
+I<server> should be a single IP address or a reference to an array
+of IP addresses:
+
+  my @a = nslookup(host => 'boston.com', server => '4.2.2.1');
+
+  my @a = nslookup(host => 'boston.com', server => [ '4.2.2.1', '128.103.1.1' ])
 
 =head1 TIMEOUTS
 

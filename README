@@ -24,7 +24,9 @@ DESCRIPTION
 
     nslookup takes a hash of options, one of which should be *term*, and
     performs a DNS lookup on that term. The type of lookup is determined by
-    the *type* (or *qtype*) argument.
+    the *type* (or *qtype*) argument. If *server* is specified (it should be
+    an IP address, or a reference to an array of IP addresses), that server
+    will be used for lookups.
 
     If only a single argument is passed in, the type defaults to *A*, that
     is, a normal A record lookup. This form is significantly faster than
@@ -40,6 +42,13 @@ DESCRIPTION
     *domain* and *host* are synonyms for *term*, and can be used to make
     client code more readable. For example, use *domain* when getting NS
     records, and use *host* for A records; both do the same thing.
+
+    *server* should be a single IP address or a reference to an array of IP
+    addresses:
+
+      my @a = nslookup(host => 'boston.com', server => '4.2.2.1');
+
+      my @a = nslookup(host => 'boston.com', server => [ '4.2.2.1', '128.103.1.1' ])
 
 TIMEOUTS
     Lookups timeout after $Net::Nslookup::TIMEOUT seconds (default 15). Set

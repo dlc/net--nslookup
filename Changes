@@ -9,6 +9,10 @@
 * Modified t/nslookup.t to skip all tests if the NO_NET environment
   variable is set (mostly so I can test off line).
 
+* Added "server" nslookup parameter, which lets you specify a
+  nameserver (or nameservers) to use.
+  Requested by Victor Pereira <vpereira@modulo.com.br>.
+
 # ----------------------------------------------------------------------
 # Version 1.12                                            March 14, 2003
 # ----------------------------------------------------------------------
