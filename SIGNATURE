@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.27.
+signed via the Module::Signature module, version 0.38.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -15,18 +15,17 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 c140ca26ddae246bb21e02f63cc7aafd0a2026f9 Changes
-SHA1 8d9cbd32b153d670bce07259f622472923dbf27a MANIFEST
-SHA1 d4e68af8119780ed97102d5ae5ba9aa2e6498613 MANIFEST.SKIP
+SHA1 41b998d632f7acbe44a659fed2fded9d9db1839b MANIFEST
 SHA1 7e61fca50c0c5ba76a0bff1d5670bfb6b49a4fa1 META.yml
 SHA1 12585bd36d7e08a0cad065ced51a3ee9f9da2e6b Makefile.PL
 SHA1 7d0ffd0981c58792b95d63205f95c2061705f422 README
-SHA1 cea52547b2182660c77dd48a37b65a2d058de8d7 lib/Net/Nslookup.pm
+SHA1 1b0783150661d5b033c312fdbfa9c802b74af159 lib/Net/Nslookup.pm
 SHA1 c4e44f68ab92f1a797f7232482da76c5a3c86f55 t/nslookup.t
+SHA1 f2ef34d69157884e7b0ff6ce689d327d12cdfc52 t/signature.t
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-Comment: This message is digitally signed and can be verified for authenticity.
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQE/lnqFzsinjrVhZaoRAp6tAJ9NSUEZaR+NyejBFoQLNCs3JJFZBACdFKNA
-kYm3u9L0CM/jE7sfS0yh4Q4=
-=xcQJ
+iD8DBQFAPPOgzsinjrVhZaoRAqQAAJ9wFcEtYAxCTLiP5ZU1RlhRUB+XlACeLnej
+j6f4eL5vk+K0DpCqw30SHLA=
+=eDcH
 -----END PGP SIGNATURE-----

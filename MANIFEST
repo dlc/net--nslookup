@@ -1,9 +1,9 @@
 Changes
-MANIFEST
-MANIFEST.SKIP
+lib/Net/Nslookup.pm
 Makefile.PL
+MANIFEST			This list of files
+META.yml
 README
 SIGNATURE
-lib/Net/Nslookup.pm
 t/nslookup.t
-META.yml                                 Module meta-data (added by MakeMaker)
+t/signature.t
