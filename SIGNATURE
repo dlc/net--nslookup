@@ -14,17 +14,18 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 878c1a2f8fc0e4f219e0720ddc87a8f8a2b721c2 Changes
+SHA1 1b71042032e415933cb639cce1aeb031e2367441 Changes
 SHA1 d2628de3f1bb7b5bf29f1ad854397d8a01ee6d6f MANIFEST
 SHA1 d4e68af8119780ed97102d5ae5ba9aa2e6498613 MANIFEST.SKIP
-SHA1 76d34a8f750d64cf8b9aced5ee0aab59cfc5688b Makefile.PL
+SHA1 b8ce0a29f9ccf95ab935fbe564a88818404f1346 Makefile.PL
 SHA1 406803032f563f105d6661af8c607521667faea7 README
-SHA1 751aac9aebcf23b07d2fff32ec06349cd744c5cf lib/Net/Nslookup.pm
+SHA1 0192bff0de81445ad9eeeee01e0bc8e08bbd17cd lib/Net/Nslookup.pm
 SHA1 c4e44f68ab92f1a797f7232482da76c5a3c86f55 t/nslookup.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
+Comment: This message is digitally signed and can be verified for authenticity.
 
-iD8DBQE+yOcozsinjrVhZaoRAjr8AJ9PUrxUSaBOCZQ0O3l2dIMLaQvJvgCfejPX
-Fmu4y6HVsiAmH426OZWEKOY=
-=IxOh
+iD8DBQE+zPvvzsinjrVhZaoRAg94AJ9eLPf6vyJPewXHG45cIuHatEiyMQCgm6UD
+lVi7SyQ86Vhh0Z3WVOqFZc0=
+=uTYY
 -----END PGP SIGNATURE-----
