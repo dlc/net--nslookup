@@ -1,112 +1,31 @@
-======================================================================
-                        --- Net-Nslookup ---
-======================================================================
+# ======================================================================
+#                        --- Net-Nslookup ---
+# ======================================================================
 
-2002-11-19 10:27  dlc
+# ----------------------------------------------------------------------
+# Version 1.12                                            March 14, 2003
+# ----------------------------------------------------------------------
 
-	* MANIFEST (1.6), MANIFEST.SKIP (1.1), Makefile.PL (1.3), test.pl
-	(1.4), lib/Net/Nslookup.pm (1.10):   o Defers loading Net::DNS
-	until it needs it, so that simple lookups
-	    will be faster.
-	
-	  o Added qslookup, which uses Socket and the system's resolver to
-	do
-	    lookups.
-	
-	  o Revamped Makefile.PL.
-	
-	  o Removed test.pl -> I can't figure out a way to reliably test
-	dns
-	    without knowing the addresses in advance, and that's the
-	problem
-	    this module is trying to solve.  My previous solution,
-	hardcoding
-	    some addresses that I thought would last a while, has failed
-	(all
-	    the addresses in question have changed).
+* qslookup no longer barfs when passed nothing, or when passed
+  something non-existant.  RT#1947
 
-2002-02-20 15:40  dlc
+* alarm is not implemented on Win32; added some (incomplete, I'm sure)
+  conditional logic to check the platform before setting an alarm.
+  Needs to be checked on MacOS (I'm assuming OS X will be Unix-like and
+  have alarm).  Reported by Roland Bauer (not RTed).
 
-	* lib/Net/Nslookup.pm (1.9): License changes.
+# ----------------------------------------------------------------------
+# Version 1.11                                         November 19, 2002
+# ----------------------------------------------------------------------
 
-2001-11-05 17:10  dlc
+* Defers loading Net::DNS until it needs it, so that simple lookups
+  will be faster.
 
-	* test.pl (1.3), lib/Net/Nslookup.pm (1.8): (foo)
+* Added qslookup, which uses Socket and the system's resolver to do
+  lookups.
 
-2001-11-05 09:48  dlc
+* Revamped test suite -- Does tests based on the contents of
+  /etc/hosts.  This is (obviously) biased towards un*xen and will
+  need to take Win32 into account.
 
-	* lib/Net/Nslookup.pm (1.7): Added support for using LOCALDOMAIN or
-	/etc/resolv.conf, as indicated by resolv.conf(5).  Domain names
-	will now be suffixed by all elements in the search domain path
-	until a match is found.
-
-2001-09-21 12:15  dlc
-
-	* Changes (1.2), MANIFEST (1.5): Added Changes to MANIFEST.
-
-2001-09-21 12:14  dlc
-
-	* Changes (1.1): Added Changes file.
-
-2001-09-20 09:09  dlc
-
-	* README (1.2): Updated with new POD.
-
-2001-09-20 09:08  dlc
-
-	* MANIFEST (1.4), lib/Net/Nslookup.pm (1.6): Added test.pl to
-	MANIFEST.  Updated examples in Nslookup.pm to correspond with the
-	tests in test.pl.
-
-2001-09-20 09:07  dlc
-
-	* test.pl (1.2): Added functional tests (does lookups against
-	perl.org hosts).
-
-2001-09-20 08:58  dlc
-
-	* lib/Net/Nslookup.pm (1.5): Calls to nslookup return if there is
-	nothing passed in, but after creating the Net::DNS::Resolver
-	object. This can be used to "seed" the module by pre-creating the
-	object.  Lookups of MX and NS records return IP addresses rather
-	than hostnames, by recursively calling nslookup as needed.
-
-2001-09-19 10:56  dlc
-
-	* test.pl (1.1): Added test.pl.
-
-2001-09-17 10:11  dlc
-
-	* MANIFEST (1.3), README (1.1), lib/Net/Nslookup.pm (1.4):
-	Significant rewrite of the internals.  Added README.
-
-2001-09-13 16:58  dlc
-
-	* lib/Net/Nslookup.pm (1.3): POD updates.
-
-2001-09-13 14:39  dlc
-
-	* lib/Net/Nslookup.pm (1.2): Added _lookup prefix to _a, _ns, _mx. 
-	Added prototypes to _lookup_{a,ns,mx}.
-
-2001-09-13 12:35  dlc
-
-	* MANIFEST (1.2), Makefile.PL (1.2), lib/Net/Nslookup.pm (1.1):
-	Many changes.
-
-2001-09-13 10:16  dlc
-
-	* Makefile (1.2): Removed some files.
-
-2001-09-13 10:15  dlc
-
-	* MANIFEST (1.1), Makefile (1.1), Makefile.PL (1.1): Initial
-	revision
-
-2001-09-13 10:15  dlc
-
-	* MANIFEST (1.1.1.1), Makefile (1.1.1.1), Makefile.PL (1.1.1.1)
-	(utags: bar): Net::DNS::Utils
-
-
- vim: set ft=changelog:
+# vim: set tw=70 ts=2 sw=2 fo=trcqo2n:
