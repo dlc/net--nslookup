@@ -24,7 +24,7 @@ my %dist = (
 
 WriteMakefile(
     'NAME'      => 'Net::Nslookup',
-    'VERSION'   => "1.15",
+    'VERSION'   => "1.16",
     'PREREQ_PM' => \%PREREQ_PM,
     'clean'     => \%clean,
     'dist'      => \%dist,

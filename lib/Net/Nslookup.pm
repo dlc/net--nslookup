@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.8 2004/08/11 18:50:35 dlc Exp $
+# $Id: Nslookup.pm,v 1.9 2004/09/28 13:28:49 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -22,12 +22,13 @@ package Net::Nslookup;
 # -------------------------------------------------------------------
 
 use strict;
-use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $MX_IS_NUMERIC $WIN32);
+use vars qw($VERSION $DEBUG $DEBUG_NET_DNS @EXPORT $TIMEOUT $MX_IS_NUMERIC $WIN32);
 use base qw(Exporter);
 
-$VERSION = 1.15;
+$VERSION = 1.16;
 @EXPORT  = qw(nslookup);
 $DEBUG   = 0 unless defined $DEBUG;
+$DEBUG_NET_DNS = 0 unless defined $DEBUG_NET_DNS;
 $TIMEOUT = 15 unless defined $TIMEOUT;
 $MX_IS_NUMERIC = 0 unless defined $MX_IS_NUMERIC;
 
@@ -155,7 +156,9 @@ sub _lookup_ptr {
 
     $query = $res->search($term, "PTR") || return;
     for $rr ($query->answer) {
-        push @answers, $rr->ptrdname;
+        if ($rr->can('ptrdname')) {
+            push @answers, $rr->ptrdname;
+        }
     }
 
     return @answers;
@@ -184,7 +187,7 @@ sub _lookup_txt ($\@) {
         unless (defined $res{$server}) {
             require Net::DNS;
             import Net::DNS;
-            $res{$server} = Net::DNS::Resolver->new;
+            $res{$server} = Net::DNS::Resolver->new(debug => $DEBUG_NET_DNS);
 
             # $server might be empty
             if ($server) {
@@ -287,6 +290,9 @@ Set this to something more reasonable for your site or script.
 
 Set $Net::Nslookup::DEBUG to a true value to get debugging messages
 carped to STDERR.
+
+Set $Net::Nslookup::DEBUG_NET_DNS to a true value to put L<Net::DNS>
+into debug mode.
 
 =head1 TODO
 
