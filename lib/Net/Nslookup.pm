@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.5 2003/05/22 16:36:11 dlc Exp $
+# $Id: Nslookup.pm,v 1.6 2003/09/12 15:27:03 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -60,6 +60,7 @@ my %_lookups = (
 #       exist, because inet_ntoa freaks out about inet_aton not
 #       returning anything.
 # ----------------------------------------------------------------------
+# Context!
 sub qslookup($) {
     my $a = inet_aton $_[0];
     return $a ? inet_ntoa $a : '';
