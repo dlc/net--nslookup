@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.1 2003/03/06 19:13:30 dlc Exp $
+# $Id: Nslookup.pm,v 1.2 2003/03/14 21:41:32 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -22,13 +22,18 @@ package Net::Nslookup;
 # -------------------------------------------------------------------
 
 use strict;
-use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT);
+use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $WIN32);
 use base qw(Exporter);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = 1.12;
 @EXPORT  = qw(nslookup);
 $DEBUG   = 0 unless defined $DEBUG;
 $TIMEOUT = 15 unless defined $TIMEOUT;
+
+# Win32 doesn't implement alarm; what about MacOS?
+# Added check based on bug report from Roland Bauer 
+# (not RT'ed)
+$WIN32   = $^O =~ /win/i; 
 
 use Carp;
 use Exporter;
@@ -41,9 +46,29 @@ my %_lookups = (
     'ns'    => \&_lookup_ns,
 );
 
-# "quick" nslookup
-sub qslookup { inet_ntoa inet_aton $_[0]; }
+# ----------------------------------------------------------------------
+# qslookup($term)
+#
+# "quick" nslookup, doesn't require Net::DNS.
+#
+# ----------------------------------------------------------------------
+# Bugs:
+#
+#   * RT#1947 (Scott Schnieder)
+#       The qslookup subroutine fails if no records for the domain
+#       exist, because inet_ntoa freaks out about inet_aton not
+#       returning anything.
+# ----------------------------------------------------------------------
+sub qslookup($) {
+    my $a = inet_aton $_[0];
+    return $a ? inet_ntoa $a : '';
+}
 
+# ----------------------------------------------------------------------
+# nslookup(%args)
+#
+# Does the actual lookup, deferring to helper functions as necessary.
+# ----------------------------------------------------------------------
 sub nslookup {
     my $options = isa($_[0], 'HASH') ? shift : @_ % 2 ? { 'host', @_ } : { @_ };
     my ($term, $type, @answers, $sub);
@@ -57,11 +82,11 @@ sub nslookup {
 
     eval {
         local $SIG{ALRM} = sub { die "alarm\n" };
-        alarm $TIMEOUT;
+        alarm $TIMEOUT unless $WIN32;
         $sub = $_lookups{$type};
         defined $sub ? @answers = $sub->($term)
                      : die "Invalid type '$type'";
-        alarm 0;
+        alarm 0 unless $WIN32;
     };
 
     if ($@) {
