@@ -22,7 +22,9 @@ DESCRIPTION
 
       my @ns = nslookup(domain => "perl.org", type => "NS");
 
-    nslookup takes a hash of options, one of which should be *term*, and
+      my $name = nslookup(host => "206.33.105.41", type => "PTR");
+
+    "nslookup" takes a hash of options, one of which should be *term*, and
     performs a DNS lookup on that term. The type of lookup is determined by
     the *type* (or *qtype*) argument. If *server* is specified (it should be
     an IP address, or a reference to an array of IP addresses), that server
@@ -32,12 +34,12 @@ DESCRIPTION
     is, a normal A record lookup. This form is significantly faster than
     using the full version, as it doesn't load Net::DNS for this.
 
-    If nslookup is called in a list context, and there is more than one
-    address, an array is returned. If nslookup is called in a scalar
-    context, and there is more than one address, nslookup returns the first
-    address. If there is only one address returned (as is usually the case),
-    then, naturally, it will be the only one returned, regardless of the
-    calling context.
+    If "nslookup" is called in a list context, and there is more than one
+    address, an array is returned. If "nslookup" is called in a scalar
+    context, and there is more than one address, "nslookup" returns the
+    first address. If there is only one address returned (as is usually the
+    case), then, naturally, it will be the only one returned, regardless of
+    the calling context.
 
     *domain* and *host* are synonyms for *term*, and can be used to make
     client code more readable. For example, use *domain* when getting NS
@@ -49,6 +51,13 @@ DESCRIPTION
       my @a = nslookup(host => 'boston.com', server => '4.2.2.1');
 
       my @a = nslookup(host => 'boston.com', server => [ '4.2.2.1', '128.103.1.1' ])
+
+    By default, "nslookup" returns addresses when looking up MX records;
+    however, the Unix tool "nslookup" returns names. Set
+    $Net::Nslookup::MX_IS_NUMERIC to a true value to have MX lookups return
+    numbers instead of names. This is a change in behavior from previous
+    versions of "Net::Nslookup", and is more consistent with other DNS
+    tools.
 
 TIMEOUTS
     Lookups timeout after $Net::Nslookup::TIMEOUT seconds (default 15). Set

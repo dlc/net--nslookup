@@ -6,3 +6,4 @@ README
 SIGNATURE
 lib/Net/Nslookup.pm
 t/nslookup.t
+META.yml                                 Module meta-data (added by MakeMaker)

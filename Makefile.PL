@@ -18,10 +18,15 @@ if ($] >= 5.00503) {
     );
 }
 
+my %dist = (
+    PREOP => 'perldoc -t lib/Net/Nslookup.pm > README; cpansign -s',
+);
+
 WriteMakefile(
     'NAME'      => 'Net::Nslookup',
-    'VERSION'   => "1.14",
+    'VERSION'   => "1.15",
     'PREREQ_PM' => \%PREREQ_PM,
     'clean'     => \%clean,
+    'dist'      => \%dist,
     %ABSTRACT,
 );

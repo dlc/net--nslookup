@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.6 2003/09/12 15:27:03 dlc Exp $
+# $Id: Nslookup.pm,v 1.7 2003/10/22 12:41:20 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -22,13 +22,14 @@ package Net::Nslookup;
 # -------------------------------------------------------------------
 
 use strict;
-use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $WIN32);
+use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $MX_IS_NUMERIC $WIN32);
 use base qw(Exporter);
 
-$VERSION = 1.14;
+$VERSION = 1.15;
 @EXPORT  = qw(nslookup);
 $DEBUG   = 0 unless defined $DEBUG;
 $TIMEOUT = 15 unless defined $TIMEOUT;
+$MX_IS_NUMERIC = 0 unless defined $MX_IS_NUMERIC;
 
 # Win32 doesn't implement alarm; what about MacOS?
 # Added check based on bug report from Roland Bauer 
@@ -116,6 +117,12 @@ sub _lookup_mx {
 
     debug("Performing 'MX' lookup on `$term'");
     @mx = mx($res, $term);
+
+    unless($MX_IS_NUMERIC) {
+        for $rr (@mx) { push(@answers, $rr->exchange); }
+        return @answers;
+    }
+
     for $rr (@mx) {
         push @answers, nslookup(type => "A", host => $rr->exchange);
     }
@@ -219,7 +226,7 @@ C<nslookup> can be used to retrieve A, PTR, CNAME, MX, and NS records.
 
   my $name = nslookup(host => "206.33.105.41", type => "PTR");
 
-B<nslookup> takes a hash of options, one of which should be I<term>,
+C<nslookup> takes a hash of options, one of which should be I<term>,
 and performs a DNS lookup on that term.  The type of lookup is
 determined by the I<type> (or I<qtype>) argument.  If I<server> is
 specified (it should be an IP address, or a reference to an array
@@ -229,9 +236,9 @@ If only a single argument is passed in, the type defaults to I<A>,
 that is, a normal A record lookup.  This form is significantly faster
 than using the full version, as it doesn't load Net::DNS for this.
 
-If B<nslookup> is called in a list context, and there is more than one
-address, an array is returned.  If B<nslookup> is called in a scalar
-context, and there is more than one address, B<nslookup> returns the
+If C<nslookup> is called in a list context, and there is more than one
+address, an array is returned.  If C<nslookup> is called in a scalar
+context, and there is more than one address, C<nslookup> returns the
 first address.  If there is only one address returned (as is usually
 the case), then, naturally, it will be the only one returned,
 regardless of the calling context.
@@ -247,6 +254,13 @@ of IP addresses:
   my @a = nslookup(host => 'boston.com', server => '4.2.2.1');
 
   my @a = nslookup(host => 'boston.com', server => [ '4.2.2.1', '128.103.1.1' ])
+
+By default, C<nslookup> returns addresses when looking up MX records;
+however, the Unix tool C<nslookup> returns names.  Set
+$Net::Nslookup::MX_IS_NUMERIC to a true value to have MX lookups
+return numbers instead of names.  This is a change in behavior from
+previous versions of C<Net::Nslookup>, and is more consistent with
+other DNS tools.
 
 =head1 TIMEOUTS
 
