@@ -2,13 +2,28 @@
 # vim: set ft=perl:
 
 use strict;
-use vars qw(%hosts $host);
+my ($hostfile, %hosts, $host);
+my @windows_hosts_file_locations = qw(
+    c:/windows/hosts
+    c:/winnt/system32/hosts
+);
 
 use Net::Nslookup;
 use Test::More;
 
+if ($^O =~ /win/i) {
+    for my $wf (@windows_hosts_file_locations) {
+        if (-e $wf) {
+            $hostfile = $wf;
+            last;
+        }
+    }
+}
+
+$hostfile ||= "/etc/hosts";
+
 # Populate %hosts
-unless (open HOSTS, "/etc/hosts") {
+unless (open HOSTS, $hostfile) {
     plan skip_all => "Can't open /etc/hosts: $!";
 }
 
