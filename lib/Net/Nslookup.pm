@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.3 2003/05/15 18:47:25 dlc Exp $
+# $Id: Nslookup.pm,v 1.4 2003/05/19 14:20:14 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -25,7 +25,7 @@ use strict;
 use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $WIN32);
 use base qw(Exporter);
 
-$VERSION = 1.12;
+$VERSION = 1.13;
 @EXPORT  = qw(nslookup);
 $DEBUG   = 0 unless defined $DEBUG;
 $TIMEOUT = 15 unless defined $TIMEOUT;
