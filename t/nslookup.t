@@ -2,7 +2,7 @@
 # vim: set ft=perl:
 
 use strict;
-my ($hostfile, %hosts, $host);
+my ($ntests, $hostfile, %hosts, $host);
 my @windows_hosts_file_locations = qw(
     c:/windows/hosts
     c:/winnt/system32/hosts
@@ -38,9 +38,14 @@ while (<HOSTS>) {
 
 close HOSTS;
 
+$ntests = scalar keys %hosts;
+plan tests => $ntests;
+SKIP: {
+    skip "No network" => $ntests
+        if $ENV{'NO_NET'};
 
-plan tests => scalar keys %hosts;
-for $host (keys %hosts) {
-    my $addr = nslookup($host);
-    ok($addr eq $hosts{$host}, "$host => $hosts{$host}");
+    for $host (keys %hosts) {
+        my $addr = nslookup($host);
+        ok($addr eq $hosts{$host}, "$host => $hosts{$host}");
+    }
 }
