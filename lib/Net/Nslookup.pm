@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.7 2003/10/22 12:41:20 dlc Exp $
+# $Id: Nslookup.pm,v 1.8 2004/08/11 18:50:35 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -46,6 +46,7 @@ my %_lookups = (
     'mx'    => \&_lookup_mx,
     'ns'    => \&_lookup_ns,
     'ptr'   => \&_lookup_ptr,
+	'txt'	=> \&_lookup_txt,
 );
 
 # ----------------------------------------------------------------------
@@ -159,6 +160,21 @@ sub _lookup_ptr {
 
     return @answers;
 }
+
+sub _lookup_txt ($\@) {
+    my ($term, $server) = @_;
+    my $res = ns($server);
+    my (@answers, $query, $rr);
+
+    debug("Performing 'TXT' lookup on `$term'");
+
+    $query = $res->search($term, "TXT") || return;
+    for $rr ($query->answer) {
+        push @answers, $rr->rdatastr();
+    }
+
+    return @answers;
+}	
 
 {
     my %res;
