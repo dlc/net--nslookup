@@ -1,7 +1,8 @@
 Changes
 MANIFEST
 MANIFEST.SKIP
-README
 Makefile.PL
+README
+SIGNATURE
 lib/Net/Nslookup.pm
 t/nslookup.t
