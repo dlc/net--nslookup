@@ -1,7 +1,7 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-# $Id: Nslookup.pm,v 1.4 2003/05/19 14:20:14 dlc Exp $
+# $Id: Nslookup.pm,v 1.5 2003/05/22 16:36:11 dlc Exp $
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
 #  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
@@ -25,7 +25,7 @@ use strict;
 use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $WIN32);
 use base qw(Exporter);
 
-$VERSION = 1.13;
+$VERSION = 1.14;
 @EXPORT  = qw(nslookup);
 $DEBUG   = 0 unless defined $DEBUG;
 $TIMEOUT = 15 unless defined $TIMEOUT;
@@ -44,6 +44,7 @@ my %_lookups = (
     'cname' => \&_lookup_a,
     'mx'    => \&_lookup_mx,
     'ns'    => \&_lookup_ns,
+    'ptr'   => \&_lookup_ptr,
 );
 
 # ----------------------------------------------------------------------
@@ -136,6 +137,21 @@ sub _lookup_ns {
     return @answers;
 }
 
+sub _lookup_ptr {
+    my ($term, $server) = @_;
+    my $res = ns($server);
+    my (@answers, $query, $rr);
+
+    debug("Performing 'PTR' lookup on `$term'");
+
+    $query = $res->search($term, "PTR") || return;
+    for $rr ($query->answer) {
+        push @answers, $rr->ptrdname;
+    }
+
+    return @answers;
+}
+
 {
     my %res;
     sub ns {
@@ -199,6 +215,8 @@ C<nslookup> can be used to retrieve A, PTR, CNAME, MX, and NS records.
   my @mx = nslookup(domain => "perl.org", type => "MX");
 
   my @ns = nslookup(domain => "perl.org", type => "NS");
+
+  my $name = nslookup(host => "206.33.105.41", type => "PTR");
 
 B<nslookup> takes a hash of options, one of which should be I<term>,
 and performs a DNS lookup on that term.  The type of lookup is

@@ -20,7 +20,7 @@ if ($] >= 5.00503) {
 
 WriteMakefile(
     'NAME'      => 'Net::Nslookup',
-    'VERSION'   => "1.13",
+    'VERSION'   => "1.14",
     'PREREQ_PM' => \%PREREQ_PM,
     'clean'     => \%clean,
     %ABSTRACT,
