@@ -67,6 +67,9 @@ DEBUGGING
     Set $Net::Nslookup::DEBUG to a true value to get debugging messages
     carped to STDERR.
 
+    Set $Net::Nslookup::DEBUG_NET_DNS to a true value to put Net::DNS into
+    debug mode.
+
 TODO
     *   Support for TXT and SOA records.
 
