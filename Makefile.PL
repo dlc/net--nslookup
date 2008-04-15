@@ -23,10 +23,10 @@ my %dist = (
 );
 
 WriteMakefile(
-    'NAME'      => 'Net::Nslookup',
-    'VERSION'   => "1.17",
-    'PREREQ_PM' => \%PREREQ_PM,
-    'clean'     => \%clean,
-    'dist'      => \%dist,
+    'NAME'          => 'Net::Nslookup',
+    'VERSION_FROM'  => 'lib/Net/Nslookup.pm',
+    'PREREQ_PM'     => \%PREREQ_PM,
+    'clean'         => \%clean,
+    'dist'          => \%dist,
     %ABSTRACT,
 );
