@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION $DEBUG $DEBUG_NET_DNS @EXPORT $TIMEOUT $MX_IS_NUMERIC $WIN32);
 use base qw(Exporter);
 
-$VERSION = 1.18;
+$VERSION = 1.19;
 @EXPORT  = qw(nslookup);
 $DEBUG   = 0 unless defined $DEBUG;
 $DEBUG_NET_DNS = 0 unless defined $DEBUG_NET_DNS;
@@ -41,7 +41,7 @@ use Socket qw/ inet_ntoa inet_aton /;
 
 my %_lookups = (
     'a'     => \&_lookup_a,
-    'cname' => \&_lookup_a,
+    'cname' => \&_lookup_cname,
     'mx'    => \&_lookup_mx,
     'ns'    => \&_lookup_ns,
     'ptr'   => \&_lookup_ptr,
@@ -140,6 +140,21 @@ sub _lookup_ns {
     $query = $res->search($term, "NS") || return;
     for $rr ($query->answer) {
         push @answers, nslookup(type => "A", host => $rr->nsdname);
+    }
+
+    return @answers;
+}
+
+sub _lookup_cname {
+    my ($term, $server) = @_;
+    my $res = ns($server);
+    my (@answers, $query, $rr);
+
+    debug("Performing 'CNAME' lookup on `$term'");
+
+    $query = $res->search($term, "CNAME") || return;
+    for $rr ($query->answer) {
+        push @answers, $rr->cname;
     }
 
     return @answers;
