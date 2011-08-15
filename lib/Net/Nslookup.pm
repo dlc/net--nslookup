@@ -2,7 +2,7 @@ package Net::Nslookup;
 
 # -------------------------------------------------------------------
 #  Net::Nslookup - Provide nslookup(1)-like capabilities
-#  Copyright (C) 2002 darren chamberlain <darren@cpan.org>
+#  Copyright (C) 2002-2011 darren chamberlain <darren@cpan.org>
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License as
@@ -23,49 +23,23 @@ use strict;
 use vars qw($VERSION $DEBUG $DEBUG_NET_DNS @EXPORT $TIMEOUT $MX_IS_NUMERIC $WIN32);
 use base qw(Exporter);
 
-$VERSION = 1.19;
-@EXPORT  = qw(nslookup);
-$DEBUG   = 0 unless defined $DEBUG;
-$DEBUG_NET_DNS = 0 unless defined $DEBUG_NET_DNS;
-$TIMEOUT = 15 unless defined $TIMEOUT;
-$MX_IS_NUMERIC = 0 unless defined $MX_IS_NUMERIC;
+$VERSION    = "2.00";
+@EXPORT     = qw(nslookup);
+$DEBUG      = 0 unless defined $DEBUG;
+$TIMEOUT    = 15 unless defined $TIMEOUT;
+$WIN32      = $^O =~ /win32/i; 
 
-# Win32 doesn't implement alarm; what about MacOS?
-# Added check based on bug report from Roland Bauer 
-# (not RT'ed)
-$WIN32   = $^O =~ /win/i; 
-
-use Carp;
 use Exporter;
-use Socket qw/ inet_ntoa inet_aton /;
 
-my %_lookups = (
-    'a'     => \&_lookup_a,
-    'cname' => \&_lookup_cname,
-    'mx'    => \&_lookup_mx,
-    'ns'    => \&_lookup_ns,
-    'ptr'   => \&_lookup_ptr,
-    'txt'   => \&_lookup_txt,
+my %_methods = qw(
+    A       address
+    CNAME   cname
+    MX      exchange
+    NS      nsdname
+    PTR     ptrdname
+    TXT     rdatadir
+    SOA     dummy
 );
-
-# ----------------------------------------------------------------------
-# qslookup($term)
-#
-# "quick" nslookup, doesn't require Net::DNS.
-#
-# ----------------------------------------------------------------------
-# Bugs:
-#
-#   * RT#1947 (Scott Schnieder)
-#       The qslookup subroutine fails if no records for the domain
-#       exist, because inet_ntoa freaks out about inet_aton not
-#       returning anything.
-# ----------------------------------------------------------------------
-# Context!
-sub qslookup($) {
-    my $a = inet_aton $_[0];
-    return $a ? inet_ntoa $a : '';
-}
 
 # ----------------------------------------------------------------------
 # nslookup(%args)
@@ -74,123 +48,72 @@ sub qslookup($) {
 # ----------------------------------------------------------------------
 sub nslookup {
     my $options = isa($_[0], 'HASH') ? shift : @_ % 2 ? { 'host', @_ } : { @_ };
-    my ($term, $type, $server, @answers, $sub);
+    my ($term, $type, @answers);
 
     # Some reasonable defaults.
     $term = lc ($options->{'term'} ||
                 $options->{'host'} ||
                 $options->{'domain'} || return);
-    $type = lc ($options->{'type'} ||
+    $type = uc ($options->{'type'} ||
                 $options->{'qtype'} || "A");
-    $server = $options->{'server'} || '';
+    $options->{'server'} ||= '';
+    $options->{'recurse'} ||= 0;
+
+    $options->{'debug'} = $DEBUG 
+        unless defined $options->{'debug'};
 
     eval {
         local $SIG{ALRM} = sub { die "alarm\n" };
         alarm $TIMEOUT unless $WIN32;
-        $sub = $_lookups{$type};
-        defined $sub ? @answers = $sub->($term, $server)
-                     : die "Invalid type '$type'";
+
+        my $meth = $_methods{ $type } || die "Unknown type '$type'";
+        my $res = ns($options->{'server'});
+
+        if ($options->{'debug'}) {
+            warn "Performing `$type' lookup on `$term'\n";
+        }
+
+        if (my $q = $res->search($term, $type)) {
+            if ('SOA' eq $type) {
+                my $a = ($q->answer)[0];
+                @answers = (join " ", map { $a->$_ }
+                    qw(mname rname serial refresh retry expire minimum));
+            }
+            else {
+                @answers = map { $_->$meth() } grep { $_->type eq $type } $q->answer;
+            }
+
+            # If recurse option is set, for NS, MX, and CNAME requests,
+            # do an A lookup on the result.  False by default.
+            if ($options->{'recurse'}   &&
+                (('NS' eq $type)        ||
+                 ('MX' eq $type)        ||
+                 ('CNAME' eq $type)
+                )) {
+
+                @answers = map {
+                    nslookup(
+                        host    => $_,
+                        type    => "A",
+                        server  => $options->{'server'},
+                        debug   => $options->{'debug'}
+                    );
+                } @answers;
+            }
+        }
+
         alarm 0 unless $WIN32;
     };
 
     if ($@) {
-        die "Bad things happened: $@"
+        die "nslookup error: $@"
             unless $@ eq "alarm\n";
-        carp qq{Timeout: nslookup("type" => "$type", "host" => "$term")};
+        warn qq{Timeout: nslookup("type" => "$type", "host" => "$term")};
     }
 
     return $answers[0] if (@answers == 1);
     return (wantarray) ? @answers : $answers[0];
 }
-
-sub _lookup_a {
-    my ($term, $server) = @_;
-
-    debug("Performing 'A' lookup on `$term'");
-    return qslookup($term);
-}
-
-sub _lookup_mx {
-    my ($term, $server) = @_;
-    my $res = ns($server);
-    my (@mx, $rr, @answers);
-
-    debug("Performing 'MX' lookup on `$term'");
-    @mx = mx($res, $term);
-
-    unless($MX_IS_NUMERIC) {
-        for $rr (@mx) { push(@answers, $rr->exchange); }
-        return @answers;
-    }
-
-    for $rr (@mx) {
-        push @answers, nslookup(type => "A", host => $rr->exchange);
-    }
-
-    return @answers;
-}
-
-sub _lookup_ns {
-    my ($term, $server) = @_;
-    my $res = ns($server);
-    my (@answers, $query, $rr);
-
-    debug("Performing 'NS' lookup on `$term'");
-
-    $query = $res->search($term, "NS") || return;
-    for $rr ($query->answer) {
-        push @answers, nslookup(type => "A", host => $rr->nsdname);
-    }
-
-    return @answers;
-}
-
-sub _lookup_cname {
-    my ($term, $server) = @_;
-    my $res = ns($server);
-    my (@answers, $query, $rr);
-
-    debug("Performing 'CNAME' lookup on `$term'");
-
-    $query = $res->search($term, "CNAME") || return;
-    for $rr ($query->answer) {
-        push @answers, $rr->cname;
-    }
-
-    return @answers;
-}
-
-sub _lookup_ptr {
-    my ($term, $server) = @_;
-    my $res = ns($server);
-    my (@answers, $query, $rr);
-
-    debug("Performing 'PTR' lookup on `$term'");
-
-    $query = $res->search($term, "PTR") || return;
-    for $rr ($query->answer) {
-        if ($rr->can('ptrdname')) {
-            push @answers, $rr->ptrdname;
-        }
-    }
-
-    return @answers;
-}
-
-sub _lookup_txt ($\@) {
-    my ($term, $server) = @_;
-    my $res = ns($server);
-    my (@answers, $query, $rr);
-
-    debug("Performing 'TXT' lookup on `$term'");
-
-    $query = $res->search($term, "TXT") || return;
-    for $rr ($query->answer) {
-        push @answers, $rr->rdatastr();
-    }
-
-    return @answers;
-}   
 
 {
     my %res;
@@ -215,16 +138,9 @@ sub _lookup_txt ($\@) {
 
         return $res{$server};
     }
-
-    sub dump_res {
-        require Data::Dumper;
-        return Data::Dumper::Dumper(\%res);
-    }
 }
 
 sub isa { &UNIVERSAL::isa }
-
-sub debug { carp @_ if ($DEBUG) }
 
 1;
 __END__
