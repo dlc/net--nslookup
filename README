@@ -75,9 +75,6 @@ TIMEOUTS
 DEBUGGING
     Pass *debug => 1* to "nslookup" to emit debugging messages to STDERR.
 
-TODO
-    *   Support for TXT and SOA records.
-
 AUTHOR
     darren chamberlain <darren@cpan.org>
 
