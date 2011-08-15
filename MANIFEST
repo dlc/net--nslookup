@@ -4,4 +4,8 @@ Makefile.PL
 MANIFEST			This list of files
 META.yml
 README
-t/nslookup.t
+t/a.t
+t/cname.t
+t/mx.t
+t/ns.t
+t/ptr.t
