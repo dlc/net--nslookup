@@ -45,7 +45,7 @@ my %_lookups = (
     'mx'    => \&_lookup_mx,
     'ns'    => \&_lookup_ns,
     'ptr'   => \&_lookup_ptr,
-	'txt'	=> \&_lookup_txt,
+    'txt'   => \&_lookup_txt,
 );
 
 # ----------------------------------------------------------------------
@@ -190,7 +190,7 @@ sub _lookup_txt ($\@) {
     }
 
     return @answers;
-}	
+}   
 
 {
     my %res;
