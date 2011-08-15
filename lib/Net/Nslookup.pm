@@ -1,26 +1,26 @@
 package Net::Nslookup;
 
 # -------------------------------------------------------------------
-#  Net::Nslookup - Provide nslookup(1)-like capabilities
-#  Copyright (C) 2002-2011 darren chamberlain <darren@cpan.org>
+# Net::Nslookup - Provide nslookup(1)-like capabilities
+# Copyright (C) 2002-2011 darren chamberlain <darren@cpan.org>
 #
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License as
-#  published by the Free Software Foundation; version 2.
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2.
 #
-#  This program is distributed in the hope that it will be useful, but
-#  WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#  General Public License for more details.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-#  02111-1307  USA
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+# 02111-1307  USA
 # -------------------------------------------------------------------
 
 use strict;
-use vars qw($VERSION $DEBUG $DEBUG_NET_DNS @EXPORT $TIMEOUT $MX_IS_NUMERIC $WIN32);
+use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $WIN32);
 use base qw(Exporter);
 
 $VERSION    = "2.00";
@@ -37,7 +37,7 @@ my %_methods = qw(
     MX      exchange
     NS      nsdname
     PTR     ptrdname
-    TXT     rdatadir
+    TXT     rdatastr
     SOA     dummy
 );
 
@@ -59,12 +59,15 @@ sub nslookup {
     $options->{'server'} ||= '';
     $options->{'recurse'} ||= 0;
 
+    $options->{'timeout'} = $TIMEOUT
+        unless defined $options->{'timeout'};
+
     $options->{'debug'} = $DEBUG 
         unless defined $options->{'debug'};
 
     eval {
         local $SIG{ALRM} = sub { die "alarm\n" };
-        alarm $TIMEOUT unless $WIN32;
+        alarm $options->{'timeout'} unless $WIN32;
 
         my $meth = $_methods{ $type } || die "Unknown type '$type'";
         my $res = ns($options->{'server'});
@@ -123,7 +126,7 @@ sub nslookup {
         unless (defined $res{$server}) {
             require Net::DNS;
             import Net::DNS;
-            $res{$server} = Net::DNS::Resolver->new(debug => $DEBUG_NET_DNS);
+            $res{$server} = Net::DNS::Resolver->new;
 
             # $server might be empty
             if ($server) {
@@ -154,17 +157,18 @@ Net::Nslookup - Provide nslookup(1)-like capabilities
   use Net::Nslookup;
   my @addrs = nslookup $host;
 
-  my @mx = nslookup(qtype => "MX", domain => "perl.org");
+  my @mx = nslookup(type => "MX", domain => "perl.org");
 
 =head1 DESCRIPTION
 
-Net::Nslookup provides the capabilities of the standard UNIX command
-line tool nslookup(1). Net::DNS is a wonderful and full featured module,
-but quite often, all you need is `nslookup $host`.  This module
-provides that functionality.
+C<Net::Nslookup> provides the capabilities of the standard UNIX
+command line tool F<nslookup(1)>. C<Net::DNS> is a wonderful and
+full featured module, but quite often, all you need is `nslookup
+$host`.  This module provides that functionality.
 
-Net::Nslookup exports a single function, called C<nslookup>.
-C<nslookup> can be used to retrieve A, PTR, CNAME, MX, and NS records.
+C<Net::Nslookup> exports a single function, called C<nslookup>.
+C<nslookup> can be used to retrieve A, PTR, CNAME, MX, NS, SOA, and
+TXT records.
 
   my $a  = nslookup(host => "use.perl.org", type => "A");
 
@@ -176,20 +180,19 @@ C<nslookup> can be used to retrieve A, PTR, CNAME, MX, and NS records.
 
 C<nslookup> takes a hash of options, one of which should be I<term>,
 and performs a DNS lookup on that term.  The type of lookup is
-determined by the I<type> (or I<qtype>) argument.  If I<server> is
-specified (it should be an IP address, or a reference to an array
-of IP addresses), that server will be used for lookups.
+determined by the I<type> argument.  If I<server> is specified (it
+should be an IP address, or a reference to an array of IP
+addresses), that server(s) will be used for lookups.
 
 If only a single argument is passed in, the type defaults to I<A>,
-that is, a normal A record lookup.  This form is significantly faster
-than using the full version, as it doesn't load Net::DNS for this.
+that is, a normal A record lookup.
 
-If C<nslookup> is called in a list context, and there is more than one
-address, an array is returned.  If C<nslookup> is called in a scalar
-context, and there is more than one address, C<nslookup> returns the
-first address.  If there is only one address returned (as is usually
-the case), then, naturally, it will be the only one returned,
-regardless of the calling context.
+If C<nslookup> is called in a list context, and there is more than
+one address, an array is returned.  If C<nslookup> is called in a
+scalar context, and there is more than one address, C<nslookup>
+returns the first address.  If there is only one address returned,
+then, naturally, it will be the only one returned, regardless of the
+calling context.
 
 I<domain> and I<host> are synonyms for I<term>, and can be used to
 make client code more readable.  For example, use I<domain> when
@@ -199,39 +202,37 @@ thing.
 I<server> should be a single IP address or a reference to an array
 of IP addresses:
 
-  my @a = nslookup(host => 'boston.com', server => '4.2.2.1');
+  my @a = nslookup(host => 'example.com', server => '4.2.2.1');
 
-  my @a = nslookup(host => 'boston.com', server => [ '4.2.2.1', '128.103.1.1' ])
+  my @a = nslookup(host => 'example.com', server => [ '4.2.2.1', '128.103.1.1' ])
 
-By default, C<nslookup> returns addresses when looking up MX records;
-however, the Unix tool C<nslookup> returns names.  Set
-$Net::Nslookup::MX_IS_NUMERIC to a true value to have MX lookups
-return numbers instead of names.  This is a change in behavior from
-previous versions of C<Net::Nslookup>, and is more consistent with
-other DNS tools.
+By default, when doing CNAME, MX, and NS lookups, C<nslookup>
+returns names, not addresses.  This is a change from versions prior
+to 2.0, which always tried to resolve names to addresses.  Pass the
+I<recurse =E<gt> 1> flag to C<nslookup> to have it follow CNAME, MX,
+and NS lookups.  Note that this usage of "recurse" is not consistent
+with the official DNS meaning of recurse.
+
+    # returns soemthing like ("mail.example.com")
+    my @mx = nslookup(domain => 'example.com', type => 'MX');
+
+    # returns soemthing like ("127.0.0.1")
+    my @mx = nslookup(domain => 'example.com', type => 'MX', recurse => 1);
+
+SOA lookups return the SOA record in the same format as the `host`
+tool:
+
+    print nslookup(domain => 'example.com', type => 'SOA');
+    dns1.icann.org. hostmaster.icann.org. 2011061433 7200 3600 1209600 3600
 
 =head1 TIMEOUTS
 
-Lookups timeout after $Net::Nslookup::TIMEOUT seconds (default 15).
-Set this to something more reasonable for your site or script.
+Lookups timeout after 15 seconds by default, but this can be configured
+by passing I<timeout =E<gt> X> to C<nslookup>.
 
 =head1 DEBUGGING
 
-Set $Net::Nslookup::DEBUG to a true value to get debugging messages
-carped to STDERR.
-
-Set $Net::Nslookup::DEBUG_NET_DNS to a true value to put L<Net::DNS>
-into debug mode.
-
-=head1 TODO
-
-=over 4
-
-=item *
-
-Support for TXT and SOA records.
-
-=back
+Pass I<debug =E<gt> 1> to C<nslookup> to emit debugging messages to STDERR.
 
 =head1 AUTHOR
 
