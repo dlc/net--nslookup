@@ -168,8 +168,8 @@ full featured module, but quite often, all you need is `nslookup
 $host`.  This module provides that functionality.
 
 C<Net::Nslookup> exports a single function, called C<nslookup>.
-C<nslookup> can be used to retrieve A, PTR, CNAME, MX, NS, SOA, and
-TXT records.
+C<nslookup> can be used to retrieve A, PTR, CNAME, MX, NS, SOA, 
+TXT, and SRV records.
 
   my $a  = nslookup(host => "use.perl.org", type => "A");
 
@@ -178,6 +178,8 @@ TXT records.
   my @ns = nslookup(domain => "perl.org", type => "NS");
 
   my $name = nslookup(host => "206.33.105.41", type => "PTR");
+
+  my @srv = nslookup(term => "_jabber._tcp.gmail.com", type => "SRV");
 
 C<nslookup> takes a hash of options, one of which should be I<term>,
 and performs a DNS lookup on that term.  The type of lookup is
