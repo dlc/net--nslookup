@@ -2,7 +2,7 @@ package Net::Nslookup;
 
 # -------------------------------------------------------------------
 # Net::Nslookup - Provide nslookup(1)-like capabilities
-# Copyright (C) 2002-2011 darren chamberlain <darren@cpan.org>
+# Copyright (C) 2002-2013 darren chamberlain <darren@cpan.org>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $WIN32);
 use base qw(Exporter);
 
-$VERSION    = "2.01";
+$VERSION    = "2.02";
 @EXPORT     = qw(nslookup);
 $DEBUG      = 0 unless defined $DEBUG;
 $TIMEOUT    = 15 unless defined $TIMEOUT;
@@ -39,6 +39,7 @@ my %_methods = qw(
     PTR     ptrdname
     TXT     rdatastr
     SOA     dummy
+    SRV     target
 );
 
 # ----------------------------------------------------------------------
