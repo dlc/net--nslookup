@@ -9,3 +9,4 @@ t/cname.t
 t/mx.t
 t/ns.t
 t/ptr.t
+t/srv.t
