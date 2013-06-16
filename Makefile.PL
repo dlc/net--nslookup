@@ -26,6 +26,7 @@ WriteMakefile(
     'NAME'          => 'Net::Nslookup',
     'VERSION_FROM'  => 'lib/Net/Nslookup.pm',
     'PREREQ_PM'     => \%PREREQ_PM,
+    'LICENSE'       => 'gpl',
     'clean'         => \%clean,
     'dist'          => \%dist,
     %ABSTRACT,
