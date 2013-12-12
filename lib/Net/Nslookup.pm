@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION $DEBUG @EXPORT $TIMEOUT $WIN32);
 use base qw(Exporter);
 
-$VERSION    = "2.03";
+$VERSION    = "2.04";
 @EXPORT     = qw(nslookup);
 $DEBUG      = 0 unless defined $DEBUG;
 $TIMEOUT    = 15 unless defined $TIMEOUT;
