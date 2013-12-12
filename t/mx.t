@@ -10,10 +10,10 @@ use_ok("Net::Nslookup");
 
 @res = nslookup(domain => "boston.com", type => "MX");
 @res = sort @res;
-is($res[0], "mail.boston.com", "nslookup(domain => 'boston.com', type => MX) -> mail.boston.com");
-is($res[1], "mail3.boston.com", "nslookup(domain => 'boston.com', type => MX) -> mail3.boston.com");
+is($res[0], "bghqmail.globe.com", "nslookup(domain => 'boston.com', type => MX) -> bghqmail.globe.com");
+is($res[1], "inapmail.boston.com", "nslookup(domain => 'boston.com', type => MX) -> inapmail.boston.com");
 
 @res = nslookup(domain => "boston.com", type => "MX", recurse => 1);
 @res = sort @res;
-is($res[0], "206.33.105.249", "nslookup(domain => 'boston.com', type => MX, recurse => 1) -> 206.33.105.249");
-is($res[1], "66.151.183.192", "nslookup(domain => 'boston.com', type => MX, recurse => 1) -> 66.151.183.192");
+is($res[0], "50.203.72.25", "nslookup(domain => 'boston.com', type => MX, recurse => 1) -> 50.203.72.25");
+is($res[1], "66.151.183.181", "nslookup(domain => 'boston.com', type => MX, recurse => 1) -> 66.151.183.181");
